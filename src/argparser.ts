@@ -6,11 +6,9 @@ import { Action, ArgumentParser } from "argparse";
 
 import { PKG_NAME, PKG_VERSION } from "./constants";
 import { POArgs } from "./types";
+import { VALID_ENCODINGS, VALID_BLOCK_SIZES } from "./types";
 
-const VALID_ENCODINGS = ["hex-uppercase", "base64", "base64-urlsafe", "hex"];
-const VALID_BLOCK_SIZES = [8, 16];
-const DEFAULT_BLOCK_SIZE = 16;
-
+const DEFAULT_BLOCK_SIZE = 8;
 const registerRequestArgs = (parser: ArgumentParser) => {
   parser.add_argument("url", {
     help: chalk`URL to attack. Payload will be inserted at the end by default. To specify a custom injection point, include {underline \{POPAYLOAD\}} in a header (-H), request body (-d) or the URL`,
@@ -51,12 +49,11 @@ const registerRequestArgs = (parser: ArgumentParser) => {
   });
 };
 
-const registerErrorArgs = (parser: ArgumentParser) => {
-  parser.add_argument("-e", "--error", {
+const registerPredicate = (parser: ArgumentParser) => {
+  parser.add_argument("predicate", {
     help: chalk`Error message to look for in the response when a decryption error occurs. This is used to determine if the padding is valid or not. For example, if the error message is {underline Invalid padding}, then the script will try to find a padding that results in a response containing {underline Invalid padding}.`,
     type: String,
-    required: true,
-  });
+});
 };
 
 const argParser = new ArgumentParser({
@@ -79,6 +76,7 @@ argParser.add_argument("--disable-cache", {
   action: "store_true",
   default: false,
   help: "Disable caching of responses",
+  dest: "disableCache",
 });
 
 const subParser = argParser.add_subparsers({
@@ -101,9 +99,9 @@ decryptParser.add_argument("block_size", {
   default: DEFAULT_BLOCK_SIZE,
   help: "Block size used by the encryption algorithm on the server",
   type: "int",
-  choices: ["8", "16"],
+  choices: VALID_BLOCK_SIZES.map((x) => x.toString()),
 });
-registerErrorArgs(decryptParser);
+registerPredicate(decryptParser);
 decryptParser.add_argument("--start-from-1st-block", {
   action: "store_true",
   default: false,
@@ -123,9 +121,10 @@ encryptParser.add_argument("plaintext", {
 encryptParser.add_argument("block_size", {
   default: DEFAULT_BLOCK_SIZE,
   help: "Block size used by the encryption algorithm on the server",
-  type: "int",
+  type: Number,
+  choices: VALID_BLOCK_SIZES as unknown as string[],
 });
-registerErrorArgs(encryptParser);
+registerPredicate(encryptParser);
 
 const analyzeParser = subParser.add_parser("analyze", {
   help: "Helps find out if the URL is vulnerable or not, and how the response differs when a decryption error occurs (for the <error> argument)",
@@ -134,10 +133,9 @@ registerRequestArgs(analyzeParser);
 analyzeParser.add_argument("block_size", {
   default: DEFAULT_BLOCK_SIZE,
   help: "Block size used by the encryption algorithm on the server",
-  type: "int",
+  type: Number,
+  choices: VALID_BLOCK_SIZES as unknown as string[],
   nargs: "?",
 });
 
-export default (): POArgs => {
-  return argParser.parse_args(process.argv.slice(2));
-};
+export default (): POArgs => argParser.parse_args(process.argv.slice(2));

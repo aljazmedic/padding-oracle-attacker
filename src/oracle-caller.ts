@@ -7,9 +7,12 @@ import { arrayifyHeaders } from './util'
 import { DEFAULT_USER_AGENT } from './constants'
 import { HeadersObject, OracleResult, OracleCallerOptions } from './types'
 
-type AddPayload = (str?: string) => string | undefined
+type AddPayload = (str?: string) => string | undefined;
 
-function getHeaders(headersArg: string | string[] | HeadersObject | undefined, addPayload: AddPayload) {
+function getHeaders(
+  headersArg: string | string[] | HeadersObject | undefined,
+  addPayload: AddPayload
+) {
   if (!headersArg) return {}
   const headersArr = (() => {
     if (Array.isArray(headersArg)) return headersArg
@@ -47,20 +50,34 @@ const OracleCaller = (options: OracleCallerOptions) => {
 
   const { method, headers, data } = requestOptions
   const injectionStringPresent = !_url.includes(POPAYLOAD)
-    && !String(typeof headers === 'object' ? JSON.stringify(headers) : headers).includes(POPAYLOAD)
+    && !String(
+      typeof headers === 'object' ? JSON.stringify(headers) : headers
+    ).includes(POPAYLOAD)
     && !(data || '').includes(POPAYLOAD)
-  const networkStats = { count: 0, lastDownloadTime: 0, bytesDown: 0, bytesUp: 0 }
+  const networkStats = {
+    count: 0,
+    lastDownloadTime: 0,
+    bytesDown: 0,
+    bytesUp: 0
+  }
 
   async function callOracle(payload: Buffer): Promise<OracleResult> {
-    const payloadString = transformPayload ? transformPayload(payload) : payload.toString('hex')
+    const payloadString = transformPayload
+      ? transformPayload(payload)
+      : payload.toString('hex')
     const addPayload: AddPayload = str => (str ? str.replace(injectionRegex, payloadString) : str)
-    const url = (injectionStringPresent ? _url + payloadString : addPayload(_url)) as string
+    const url = (
+      injectionStringPresent ? _url + payloadString : addPayload(_url)
+    ) as string
     const customHeaders = getHeaders(headers, addPayload)
     const body = addPayload(data)
     const cacheKey = [url, JSON.stringify(customHeaders), body].join('|')
     if (isCacheEnabled) {
-      const cached = await cacheStore.get(cacheKey) as OracleResult
-      if (cached) return { url, ...cached }
+      const cached = (await cacheStore.get(cacheKey)) as OracleResult
+      if (cached) {
+        cached.url = url
+        return { ...cached }
+      }
     }
     const response = await got(url, {
       throwHttpErrors: false,
@@ -75,9 +92,14 @@ const OracleCaller = (options: OracleCallerOptions) => {
     networkStats.lastDownloadTime = response.timings.phases.total
     networkStats.bytesDown += response.socket.bytesRead || 0
     networkStats.bytesUp += response.socket.bytesWritten || 0
-    const result = pick(response, ['statusCode', 'headers', 'body']) as OracleResult
+    const result = pick(response, [
+      'statusCode',
+      'headers',
+      'body'
+    ]) as OracleResult
     if (isCacheEnabled) await cacheStore.set(cacheKey, result)
-    return { url, ...result }
+    result.url = url
+    return { ...result }
   }
   return { networkStats, callOracle }
 }
