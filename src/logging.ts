@@ -4,7 +4,7 @@ import logUpdate from 'log-update'
 import ansiStyles from 'ansi-styles'
 import prettyBytes from 'pretty-bytes'
 import { table, getBorderCharacters, TableUserConfig } from 'table'
-import { getStatusCodeColor, getPrintable } from './util'
+import { getStatusCodeColor, getPrintable, ntimes } from './util'
 import { HeadersObject, OracleResult } from './types'
 
 const { isTTY } = process.stdout
@@ -25,18 +25,26 @@ interface ColorizeHex {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const aStyles = ansiStyles as any
-function colorizeHex({ cipherHex, totalSize, foundOffsets, currentByteColor, currentByteHex, currentByteOffset }: ColorizeHex) {
+function colorizeHex({
+  cipherHex,
+  totalSize,
+  foundOffsets,
+  currentByteColor,
+  currentByteHex,
+  currentByteOffset
+}: ColorizeHex) {
   let result = ''
   let lastColor = ''
   for (let i = 0; i < totalSize; i++) {
     const isCurrentByte = currentByteOffset === i
     let color = 'gray'
     if (isCurrentByte) color = currentByteColor
-    else if (foundOffsets.has(i) || i >= (totalSize - 16)) color = 'green'
+    else if (foundOffsets.has(i) || i >= totalSize - 16) color = 'green'
 
     const byteHex = cipherHex.slice(i * 2, i * 2 + 2)
     if (lastColor !== color) {
-      result += (lastColor ? aStyles[lastColor].close : '') + aStyles[color].open
+      result
+        += (lastColor ? aStyles[lastColor].close : '') + aStyles[color].open
       lastColor = color
     }
     result += isCurrentByte ? currentByteHex : byteHex
@@ -48,7 +56,12 @@ function colorizeHex({ cipherHex, totalSize, foundOffsets, currentByteColor, cur
 const log = isTTY ? logUpdate : console.log
 const wrapAndSplit = (text: string, size: number) => wrapAnsi(text, size, { hard: true }).split('\n')
 
-interface NetworkStats { count: number, lastDownloadTime: number, bytesDown: number, bytesUp: number }
+interface NetworkStats {
+  count: number
+  lastDownloadTime: number
+  bytesDown: number
+  bytesUp: number
+}
 interface LogProgressOptions {
   plaintext: Buffer
   ciphertext: Buffer
@@ -62,9 +75,19 @@ interface LogProgressOptions {
   startFromFirstBlock?: boolean
   isCacheEnabled?: boolean
 }
-export function logProgress(
-  { plaintext, ciphertext, foundOffsets, blockSize, blockI, byteI, byte, decryptionSuccess, networkStats, startFromFirstBlock, isCacheEnabled }: LogProgressOptions
-) {
+export function logProgress({
+  plaintext,
+  ciphertext,
+  foundOffsets,
+  blockSize,
+  blockI,
+  byteI,
+  byte,
+  decryptionSuccess,
+  networkStats,
+  startFromFirstBlock,
+  isCacheEnabled
+}: LogProgressOptions) {
   const cipherHex = ciphertext.toString('hex')
   const currentByteHex = byte.toString(16).padStart(2, '0')
   const start = blockSize * blockI
@@ -72,12 +95,19 @@ export function logProgress(
   const greenStart = 2 * (start + byteI + 1)
   const currentByteColor = decryptionSuccess ? 'green' : 'yellow'
   const colorized = startFromFirstBlock
-    ? colorizeHex({ cipherHex, totalSize: ciphertext.length, foundOffsets, currentByteColor, currentByteHex, currentByteOffset: start + byteI })
+    ? colorizeHex({
+        cipherHex,
+        totalSize: ciphertext.length,
+        foundOffsets,
+        currentByteColor,
+        currentByteHex,
+        currentByteOffset: start + byteI
+      })
     : [
-      chalk.gray(cipherHex.slice(0, grayEnd)),
-      chalk[currentByteColor](currentByteHex),
-      chalk.green(cipherHex.slice(greenStart))
-    ].join('')
+        chalk.gray(cipherHex.slice(0, grayEnd)),
+        chalk[currentByteColor](currentByteHex),
+        chalk.green(cipherHex.slice(greenStart))
+      ].join('')
 
   const printable = getPrintable(plaintext.toString('utf8'))
   const plainHex = plaintext.toString('hex')
@@ -89,7 +119,9 @@ export function logProgress(
     const xStart = (i - 1) * blockSize
     const plain = printable.slice(xStart, xStart + blockSize)
     const hex = plainHexSplit[i - 1] || ''
-    return `${String(i + 1).padStart(2)}. ${ciphertextBlockHex} ${hex} ${plain}`
+    return `${String(i + 1).padStart(
+      2
+    )}. ${ciphertextBlockHex} ${hex} ${plain}`
   }
   const cipherplain = wrapAndSplit(colorized, blockSize * 2)
     .map(mapFunc)
@@ -101,9 +133,15 @@ export function logProgress(
     (percent * 100).toFixed(1).padStart(5) + '%',
     `${blockI + 1}x${byteI + 1}`.padStart(5),
     `${byte}/256`.padStart(7),
-    chalk`\n\n{yellow ${String(networkStats.count).padStart(4)}} total network requests`,
-    chalk`| last request took {yellow ${String(networkStats.lastDownloadTime).padStart(4)}ms}`,
-    chalk`| {yellow ${prettyBytes(networkStats.bytesDown).padStart(7)}} downloaded`,
+    chalk`\n\n{yellow ${String(networkStats.count).padStart(
+      4
+    )}} total network requests`,
+    chalk`| last request took {yellow ${String(
+      networkStats.lastDownloadTime
+    ).padStart(4)}ms}`,
+    chalk`| {yellow ${prettyBytes(networkStats.bytesDown).padStart(
+      7
+    )}} downloaded`,
     chalk`| {yellow ${prettyBytes(networkStats.bytesUp).padStart(7)}} uploaded`,
     isCacheEnabled ? '' : chalk`| cache: {gray disabled}`
   )
@@ -115,7 +153,9 @@ export function logWarning(txt: string) {
 `)
 }
 
-const stringifyHeaders = (headers: HeadersObject) => Object.entries(headers).map(([k, v]) => `${chalk.gray(k.padEnd(20))}: ${v}`).join('\n')
+const stringifyHeaders = (headers: HeadersObject) => Object.entries(headers)
+    .map(([k, v]) => `${chalk.gray(k.padEnd(20))}: ${v}`)
+    .join('\n')
 
 function logRequest(request: OracleResult) {
   console.log(request.statusCode, request.url)
@@ -123,7 +163,10 @@ function logRequest(request: OracleResult) {
   console.log()
   const size = request.body.length
   if (size > 1024) {
-    console.log(request.body.slice(0, 1024), chalk.gray(`[...and ${(size - 1024).toLocaleString()} more bytes]`))
+    console.log(
+      request.body.slice(0, 1024),
+      chalk.gray(`[...and ${(size - 1024).toLocaleString()} more bytes]`)
+    )
   } else {
     console.log(request.body)
   }
@@ -138,14 +181,25 @@ interface LogStart {
   decryptionSuccess?: Promise<boolean>
 }
 export const decryption = {
-  async logStart({ blockCount, totalSize, initialRequest: initialRequestPromise, decryptionSuccess }: LogStart) {
+  async logStart({
+    blockCount,
+    totalSize,
+    initialRequest: initialRequestPromise,
+    decryptionSuccess
+  }: LogStart) {
     console.log(chalk.bold.white('~~~DECRYPTING~~~'))
-    console.log('total bytes:', chalk.yellow(String(totalSize)), '|', 'blocks:', chalk.yellow(String(blockCount - 1)))
+    console.log(
+      'total bytes:',
+      chalk.yellow(String(totalSize)),
+      '|',
+      'blocks:',
+      chalk.yellow(String(blockCount - 1))
+    )
     console.log()
     logHeader('making request with original ciphertext')
     const initialRequest = await initialRequestPromise
     if (initialRequest) {
-      if (!await decryptionSuccess) {
+      if (!(await decryptionSuccess)) {
         logWarning(`Decryption failed for initial request with original ciphertext.
 The parameter you provided for determining decryption success seems to be incorrect.`)
       }
@@ -153,7 +207,13 @@ The parameter you provided for determining decryption success seems to be incorr
     }
     console.log()
   },
-  logCompletion({ foundBytes, interBytes }: { foundBytes: Buffer, interBytes: Buffer }) {
+  logCompletion({
+    foundBytes,
+    interBytes
+  }: {
+    foundBytes: Buffer
+    interBytes: Buffer
+  }) {
     logUpdate.done()
     console.log()
     logHeader('plaintext printable bytes in utf8')
@@ -170,10 +230,24 @@ The parameter you provided for determining decryption success seems to be incorr
 export const encryption = {
   logStart({ blockCount, totalSize }: LogStart) {
     console.log(chalk.bold.white('~~~ENCRYPTING~~~'))
-    console.log('total bytes:', chalk.yellow(String(totalSize)), '|', 'blocks:', chalk.yellow(String(blockCount - 1)))
+    console.log(
+      'total bytes:',
+      chalk.yellow(String(totalSize)),
+      '|',
+      'blocks:',
+      chalk.yellow(String(blockCount - 1))
+    )
     console.log()
   },
-  logCompletion({ foundBytes, interBytes, finalRequest }: { foundBytes: Buffer, interBytes: Buffer, finalRequest?: OracleResult }) {
+  logCompletion({
+    foundBytes,
+    interBytes,
+    finalRequest
+  }: {
+    foundBytes: Buffer
+    interBytes: Buffer
+    finalRequest?: OracleResult
+  }) {
     logUpdate.done()
     console.log()
     logHeader('ciphertext bytes in hex')
@@ -197,14 +271,35 @@ interface AnalysisLogCompletion {
   isCacheEnabled: boolean
 }
 export const analysis = {
-  logStart({ url, blockSize, tmpDirPath }: { url: string, blockSize: number, tmpDirPath?: string }) {
+  logStart({
+    url,
+    blockSize,
+    tmpDirPath
+  }: {
+    url: string
+    blockSize: number
+    tmpDirPath?: string
+  }) {
     console.log(chalk.bold.white('~~~RESPONSE ANALYSIS~~~'))
-    console.log('url:', chalk.yellow(url), '|', 'block size:', chalk.yellow(String(blockSize)))
+    console.log(
+      'url:',
+      chalk.yellow(url),
+      '|',
+      'block size:',
+      chalk.yellow(String(blockSize))
+    )
     console.log('will make 256 network requests and analyze responses')
     if (tmpDirPath) console.log('responses will be saved to', chalk.underline(tmpDirPath))
     console.log()
   },
-  logCompletion({ responsesTable, statusCodeFreq, bodyLengthFreq, tmpDirPath, networkStats, isCacheEnabled }: AnalysisLogCompletion) {
+  logCompletion({
+    responsesTable,
+    statusCodeFreq,
+    bodyLengthFreq,
+    tmpDirPath,
+    networkStats,
+    isCacheEnabled
+  }: AnalysisLogCompletion) {
     const tableConfig: TableUserConfig = {
       border: getBorderCharacters('void'),
       columnDefault: { paddingLeft: 0, paddingRight: 2 },
@@ -223,13 +318,27 @@ export const analysis = {
     console.log(tabled)
     logHeader('status code frequencies')
 
-    console.log(table(scFreqEntries.map(([k, v]) => [k, v + ' time(s)']), secondTableConfig))
+    console.log(
+      table(
+        scFreqEntries.map(([k, v]) => [k, ntimes(v)]),
+        secondTableConfig
+      )
+    )
+
     logHeader('content length frequencies')
-    console.log(table(clFreqEntries.map(([k, v]) => [k, v + ' time(s)']), secondTableConfig))
+    console.log(
+      table(
+        clFreqEntries.map(([k, v]) => [k, ntimes(v)]),
+        secondTableConfig
+      )
+    )
+
     logHeader('network stats')
     console.log(
       chalk`{yellow ${String(networkStats.count)}} total network requests`,
-      chalk`| last request took {yellow ${String(networkStats.lastDownloadTime)}ms}`,
+      chalk`| last request took {yellow ${String(
+        networkStats.lastDownloadTime
+      )}ms}`,
       chalk`| {yellow ${prettyBytes(networkStats.bytesDown)}} downloaded`,
       chalk`| {yellow ${prettyBytes(networkStats.bytesUp)}} uploaded`,
       isCacheEnabled ? '' : chalk`| cache: {gray disabled}`,
@@ -241,12 +350,18 @@ export const analysis = {
     }
     logHeader('automated analysis')
     const commonTips = [
-      tmpDirPath && chalk`{gray *} Inspect the saved responses in {underline ${tmpDirPath}}`,
+      tmpDirPath
+        && chalk`{gray *} Inspect the saved responses in {underline ${tmpDirPath}}`,
       chalk`{gray *} Change the <block_size> argument. Common block sizes are 8, 16, 32.`,
       chalk`{gray *} Make sure the injection point {underline \{POPAYLOAD\}} is correctly set.`
-    ].filter(Boolean).join('\n')
+    ]
+      .filter(Boolean)
+      .join('\n')
     if (scFreqEntries.length === 1 && clFreqEntries.length === 1) {
-      console.log("Responses don't seem to differ by status code or content length.\n" + commonTips)
+      console.log(
+        "Responses don't seem to differ by status code or content length.\n"
+          + commonTips
+      )
     } else if (scFreqEntries.length !== 2 && clFreqEntries.length !== 2) {
       console.log('Responses seem to widely differ.\n' + commonTips)
     } else {
@@ -254,8 +369,12 @@ export const analysis = {
         const errorStatusCode = scFreqEntries.find(([, v]) => v === 255)
         const successStatusCode = scFreqEntries.find(([, v]) => v === 1)
         if (successStatusCode && errorStatusCode) {
-          const sc = chalk[getStatusCodeColor(+errorStatusCode[0])](errorStatusCode[0])
-          console.log(chalk`Responses are likely to have a ${sc} status code when a decryption error occurs.\nYou can try specifying ${sc} for the {bold <predicate>} argument.\n`)
+          const sc = chalk[getStatusCodeColor(+errorStatusCode[0])](
+            errorStatusCode[0]
+          )
+          console.log(
+            chalk`Responses are likely to have a ${sc} status code when a decryption error occurs.\nYou can try specifying ${sc} for the {bold <predicate>} argument.\n`
+          )
         }
       }
       if (clFreqEntries.length === 2) {

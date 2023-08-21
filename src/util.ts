@@ -22,6 +22,7 @@ export function getPrintable(str: string): string {
   return str.replace(re, '.').replace(wsRe, '.')
 }
 
+export const ntimes = (n: number) => (n === 1 ? '1 time' : `${n} times`)
 export const arrayifyHeaders = (headers: HeadersObject) => Object.entries(headers).map(([k, v]) => `${k}: ${v}`)
 export const stringifyHeaders = (headers: HeadersObject) => arrayifyHeaders(headers).join('\n')
 
