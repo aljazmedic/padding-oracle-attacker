@@ -1,12 +1,10 @@
 import fse from "fs-extra";
-import path from "path";
-import minimist from "minimist";
 import chalk from "chalk";
-import { Action, ArgumentParser } from "argparse";
+import { ArgumentParser } from "argparse";
 
 import { PKG_NAME, PKG_VERSION } from "./constants";
-import { POArgs } from "./types";
-import { VALID_ENCODINGS, VALID_BLOCK_SIZES } from "./types";
+import { POArgs, VALID_BLOCK_SIZES } from "./types";
+import { VALID_ENCODINGS } from "./encodings";
 
 const DEFAULT_BLOCK_SIZE = 8;
 const registerRequestArgs = (parser: ArgumentParser) => {
@@ -53,7 +51,7 @@ const registerPredicate = (parser: ArgumentParser) => {
   parser.add_argument("predicate", {
     help: chalk`Error message to look for in the response when a decryption error occurs. This is used to determine if the padding is valid or not. For example, if the error message is {underline Invalid padding}, then the script will try to find a padding that results in a response containing {underline Invalid padding}.`,
     type: String,
-});
+  });
 };
 
 const argParser = new ArgumentParser({
@@ -99,7 +97,7 @@ decryptParser.add_argument("block_size", {
   default: DEFAULT_BLOCK_SIZE,
   help: "Block size used by the encryption algorithm on the server",
   type: "int",
-  choices: VALID_BLOCK_SIZES.map((x) => x.toString()),
+  choices: VALID_BLOCK_SIZES as any,
 });
 registerPredicate(decryptParser);
 decryptParser.add_argument("--start-from-1st-block", {
@@ -122,7 +120,7 @@ encryptParser.add_argument("block_size", {
   default: DEFAULT_BLOCK_SIZE,
   help: "Block size used by the encryption algorithm on the server",
   type: Number,
-  choices: VALID_BLOCK_SIZES as unknown as string[],
+  choices: VALID_BLOCK_SIZES as any,
 });
 registerPredicate(encryptParser);
 
