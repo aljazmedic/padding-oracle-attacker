@@ -1,4 +1,4 @@
-const pkg = require('../package.json') // eslint-disable-line
+const pkg = require("../package.json"); // eslint-disable-line
 
 const GITHUB_REPO_URL = `https://github.com/${pkg.repository}`
 

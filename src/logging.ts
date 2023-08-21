@@ -255,7 +255,7 @@ export const analysis = {
         const successStatusCode = scFreqEntries.find(([, v]) => v === 1)
         if (successStatusCode && errorStatusCode) {
           const sc = chalk[getStatusCodeColor(+errorStatusCode[0])](errorStatusCode[0])
-          console.log(chalk`Responses are likely to have a ${sc} status code when a decryption error occurs.\nYou can try specifying ${sc} for the {bold <error>} argument.\n`)
+          console.log(chalk`Responses are likely to have a ${sc} status code when a decryption error occurs.\nYou can try specifying ${sc} for the {bold <predicate>} argument.\n`)
         }
       }
       if (clFreqEntries.length === 2) {

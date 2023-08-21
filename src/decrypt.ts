@@ -9,11 +9,24 @@ import { xor } from './util'
 const { logStart, logCompletion } = decryption
 
 async function decrypt({
-  url, blockSize, logMode = 'full', ciphertext, isDecryptionSuccess, makeInitialRequest = true, alreadyFound, startFromFirstBlock, initFirstPayloadBlockWithOrigBytes, ...args
+  url,
+  blockSize,
+  logMode = 'full',
+  ciphertext,
+  isDecryptionSuccess,
+  makeInitialRequest = true,
+  alreadyFound,
+  startFromFirstBlock,
+  initFirstPayloadBlockWithOrigBytes,
+  ...args
 }: DecryptOptions) {
   ow(ciphertext, ow.buffer)
   ow(alreadyFound, ow.optional.buffer)
-  if (ciphertext.length % blockSize !== 0) throw TypeError('Invalid `ciphertext`, should be evenly divisble by `blockSize`')
+  if (ciphertext.length % blockSize !== 0) {
+ throw TypeError(
+      'Invalid `ciphertext`, should be evenly divisble by `blockSize`'
+    )
+}
 
   const totalSize = ciphertext.length
   const blockCount = totalSize / blockSize
@@ -49,9 +62,20 @@ async function decrypt({
     logMode,
     ...args
   })
-  const initialRequest = makeInitialRequest ? po.callOracle(ciphertext) : undefined
-  const decryptionSuccess = initialRequest ? initialRequest.then(isDecryptionSuccess) : undefined
-  if (['full', 'minimal'].includes(logMode)) await logStart({ blockCount, totalSize, initialRequest, decryptionSuccess })
+  const initialRequest = makeInitialRequest
+    ? po.callOracle(ciphertext)
+    : undefined
+  const decryptionSuccess = initialRequest
+    ? initialRequest.then(isDecryptionSuccess)
+    : undefined
+  if (['full', 'minimal'].includes(logMode)) {
+ await logStart({
+      blockCount,
+      totalSize,
+      initialRequest,
+      decryptionSuccess
+    })
+}
   await po.processBlocks()
 
   if (['full', 'minimal'].includes(logMode)) logCompletion({ foundBytes, interBytes })

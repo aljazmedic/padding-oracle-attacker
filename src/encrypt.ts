@@ -8,15 +8,25 @@ import { EncryptOptions } from './types'
 const { logStart, logCompletion } = encryption
 
 async function encrypt({
-  url, blockSize, logMode = 'full', plaintext: _plaintext, makeFinalRequest = true, lastCiphertextBlock, ...args
+  url,
+  blockSize,
+  logMode = 'full',
+  plaintext: _plaintext,
+  makeFinalRequest = true,
+  lastCiphertextBlock,
+  ...args
 }: EncryptOptions) {
   ow(_plaintext, 'plaintext', ow.buffer)
   ow(lastCiphertextBlock, ow.optional.buffer)
-  if (lastCiphertextBlock && lastCiphertextBlock.length !== blockSize) throw TypeError('Invalid `lastCiphertextBlock`, should have length equal to `blockSize`')
+  if (lastCiphertextBlock && lastCiphertextBlock.length !== blockSize) {
+    throw TypeError(
+      'Invalid `lastCiphertextBlock`, should have length equal to `blockSize`'
+    )
+  }
 
   const plaintext = addPadding(_plaintext, blockSize)
 
-  const blockCount = (plaintext.length / blockSize) + 1
+  const blockCount = plaintext.length / blockSize + 1
   const totalSize = blockCount * blockSize
 
   const foundBytes = Buffer.alloc(totalSize) // ciphertext bytes
@@ -30,10 +40,22 @@ async function encrypt({
   if (['full', 'minimal'].includes(logMode)) logStart({ blockCount, totalSize })
 
   const po = PaddingOracle({
-    origBytes: plaintext, ciphertext: foundBytes, plaintext, foundBytes, interBytes, foundOffsets, blockSize, blockCount, url, logMode, ...args
+    origBytes: plaintext,
+    ciphertext: foundBytes,
+    plaintext,
+    foundBytes,
+    interBytes,
+    foundOffsets,
+    blockSize,
+    blockCount,
+    url,
+    logMode,
+    ...args
   })
   await po.processBlocks()
-  const finalRequest = makeFinalRequest ? await po.callOracle(foundBytes) : undefined
+  const finalRequest = makeFinalRequest
+    ? await po.callOracle(foundBytes)
+    : undefined
 
   if (['full', 'minimal'].includes(logMode)) logCompletion({ foundBytes, interBytes, finalRequest })
 
