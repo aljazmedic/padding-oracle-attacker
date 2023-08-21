@@ -55,6 +55,7 @@
     "argparse": "^2.0.1",
     "bluebird": "^3.5.4",
     "chalk": "^2.4.2",
+    "fast-stats": "^0.0.6",
     "fs-extra": "^8.1.0",
     "got": "^9.6.0",
     "keyv": "^3.1.0",
@@ -62,6 +63,7 @@
     "lodash": "^4.17.11",
     "log-update": "^3.2.0",
     "minimist": "^1.2.0",
+    "otsu": "^0.0.5",
     "ow": "^0.12.0",
     "p-limit": "^2.2.0",
     "pretty-bytes": "^5.2.0",
@@ -71,6 +73,7 @@
   },
   "devDependencies": {
     "@types/argparse": "^2.0.10",
+    "@types/fast-stats": "^0.0.32",
     "@typescript-eslint/eslint-plugin": "^1.7.0",
     "@typescript-eslint/parser": "^1.7.0",
     "ava": "*",

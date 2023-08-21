@@ -23,6 +23,7 @@ export function getPrintable(str: string): string {
 }
 
 export const ntimes = (n: number) => (n === 1 ? '1 time' : `${n} times`)
+export const numMs = (ms: number) => (Number.isNaN(ms) ? 'N/A' : `${ms.toFixed(3)}ms`)
 export const arrayifyHeaders = (headers: HeadersObject) => Object.entries(headers).map(([k, v]) => `${k}: ${v}`)
 export const stringifyHeaders = (headers: HeadersObject) => arrayifyHeaders(headers).join('\n')
 

@@ -8,7 +8,9 @@ import { VALID_ENCODINGS } from './encodings'
 const DEFAULT_BLOCK_SIZE = 8
 const registerRequestArgs = (parser: ArgumentParser) => {
   parser.add_argument('url', {
-    help: chalk`URL to attack. Payload will be inserted at the end by default. To specify a custom injection point, include {underline \{POPAYLOAD\}} in a header (-H), request body (-d) or the URL`,
+    help:
+      chalk`URL to attack. Payload will be inserted at the end by default. To specify a custom injection point, include`
+      + chalk` {underline \{POPAYLOAD\}} in a header (-H), request body (-d) or the URL`,
     type: String
   })
   parser.add_argument('-X', '--method', {
@@ -48,7 +50,10 @@ const registerRequestArgs = (parser: ArgumentParser) => {
 
 const registerPredicate = (parser: ArgumentParser) => {
   parser.add_argument('predicate', {
-    help: chalk`Error message to look for in the response when a decryption error occurs. This is used to determine if the padding is valid or not. For example, if the error message is {underline Invalid padding}, then the script will try to find a padding that results in a response containing {underline Invalid padding}.`,
+    help:
+      chalk`Error message to look for in the response when a decryption error occurs. This is used to determine if the padding is valid or not.`
+      + chalk` For example, if the error message is {underline Invalid padding}, then the script will try to find a padding that results in a response`
+      + chalk`containing {underline Invalid padding}.`,
     type: String
   })
 }

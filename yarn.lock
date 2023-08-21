@@ -65,7 +65,7 @@
 
 "@types/argparse@^2.0.10":
   version "2.0.10"
-  resolved "https://registry.yarnpkg.com/@types/argparse/-/argparse-2.0.10.tgz#664e84808accd1987548d888b9d21b3e9c996a6c"
+  resolved "https://registry.npmjs.org/@types/argparse/-/argparse-2.0.10.tgz"
   integrity sha512-C4wahC3gz3vQtvPazrJ5ONwmK1zSDllQboiWvpMM/iOswCYfBREFnjFbq/iWKIVOCl8+m5Pk6eva6/ZSsDuIGA==
 
 "@types/bluebird-global@^3.5.11":
@@ -89,6 +89,11 @@
   version "1.0.0"
   resolved "https://registry.npmjs.org/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
+
+"@types/fast-stats@^0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/fast-stats/-/fast-stats-0.0.32.tgz#da3ec39938b6378508b85241ca0428c6a0b8bf7e"
+  integrity sha512-UofRbwaYx42bqBkleJbjb1b/A3FANo/A2apFJMN9SSAAPWGyhxlfgW0xKCiu3X9UvlMugmZC5ZVoIr6Gik8Krw==
 
 "@types/fs-extra@^8.0.0":
   version "8.1.2"
@@ -303,7 +308,7 @@ argparse@^1.0.7:
 
 argparse@^2.0.1:
   version "2.0.1"
-  resolved "https://registry.yarnpkg.com/argparse/-/argparse-2.0.1.tgz#246f50f3ca78a3240f6c997e8a9bd1eac49e4b38"
+  resolved "https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz"
   integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
 
 array-find-index@^1.0.1:
@@ -1158,6 +1163,11 @@ fast-levenshtein@~2.0.6:
   version "2.0.6"
   resolved "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz"
   integrity sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc=
+
+fast-stats@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/fast-stats/-/fast-stats-0.0.6.tgz#949e7a97ef12effba710c6322a1fad3fcc8609e7"
+  integrity sha512-m0zkwa7Z07Wc4xm1YtcrCHmhzNxiYRrrfUyhkdhSZPzaAH/Ewbocdaq7EPVBFz19GWfIyyPcLfRHjHJYe83jlg==
 
 fastq@^1.6.0:
   version "1.15.0"
@@ -2048,6 +2058,11 @@ os-tmpdir@~1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/os-tmpdir/-/os-tmpdir-1.0.2.tgz"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
+
+otsu@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/otsu/-/otsu-0.0.5.tgz#03aa65bd35726d4d70408c7f40bfe3104a4ced74"
+  integrity sha512-ZmQ0Grj3Suaw0y2DniMP90GJ3zI4CXR/Rpev6C7gV1WBzD6TQnKC8ecrvoZruPorHvAvPGOY9ZmbRa8mBZHG/w==
 
 ow@^0.12.0:
   version "0.12.0"

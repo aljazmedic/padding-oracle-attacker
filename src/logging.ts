@@ -4,7 +4,9 @@ import logUpdate from 'log-update'
 import ansiStyles from 'ansi-styles'
 import prettyBytes from 'pretty-bytes'
 import { table, getBorderCharacters, TableUserConfig } from 'table'
-import { getStatusCodeColor, getPrintable, ntimes } from './util'
+import { Stats } from 'fast-stats'
+import otsu from 'otsu'
+import { getStatusCodeColor, getPrintable, ntimes, numMs } from './util'
 import { HeadersObject, OracleResult } from './types'
 
 const { isTTY } = process.stdout
@@ -266,6 +268,7 @@ interface AnalysisLogCompletion {
   responsesTable: string[][]
   statusCodeFreq: { [key: string]: number }
   bodyLengthFreq: { [key: string]: number }
+  timesTakenArray: number[]
   tmpDirPath?: string
   networkStats: NetworkStats
   isCacheEnabled: boolean
@@ -296,6 +299,7 @@ export const analysis = {
     responsesTable,
     statusCodeFreq,
     bodyLengthFreq,
+    timesTakenArray,
     tmpDirPath,
     networkStats,
     isCacheEnabled
@@ -308,7 +312,13 @@ export const analysis = {
     const secondTableConfig: TableUserConfig = {
       border: getBorderCharacters('honeywell'),
       columnDefault: { alignment: 'right', paddingLeft: 2, paddingRight: 2 },
-      singleLine: true
+      singleLine: true,
+      columnCount: 2,
+      columns: {
+        1: {
+          alignment: 'left'
+        }
+      }
     }
     const headerRows = ['Byte', 'Status Code', 'Content Length'].map(x => chalk.gray(x))
     const scFreqEntries = Object.entries(statusCodeFreq)
@@ -317,7 +327,6 @@ export const analysis = {
     logHeader('responses')
     console.log(tabled)
     logHeader('status code frequencies')
-
     console.log(
       table(
         scFreqEntries.map(([k, v]) => [k, ntimes(v)]),
@@ -329,6 +338,51 @@ export const analysis = {
     console.log(
       table(
         clFreqEntries.map(([k, v]) => [k, ntimes(v)]),
+        secondTableConfig
+      )
+    )
+
+    logHeader('time taken info')
+    // Perform thresholding on timesTakenStats
+    const otsuThreshold = otsu(timesTakenArray)
+
+    const ttstats = new Stats({
+      sampling: false
+    })
+    ttstats.push(timesTakenArray)
+    const { min } = ttstats
+    const { max } = ttstats
+    const std = ttstats.stddev()
+    const mean = ttstats.amean()
+    if (!min || !max) throw new Error('min or max is undefined')
+    // Check if min and max are both within 1 standard deviation of the mean
+    const withinStd = (x: number, nstd: number) => x >= mean - nstd * std && x <= mean + nstd * std
+    const getMinStd = (x: number) => {
+      if (withinStd(x, 1)) return 1
+      if (withinStd(x, 2)) return 2
+      return '3+'
+    }
+    const stdStyleMap = {
+      1: 'default',
+      2: 'yellow',
+      '3+': 'red'
+    }
+    const [minStyle, maxStyle] = [min, max].map((x) => {
+      const minStdsAway = getMinStd(x)
+      return chalk`{${stdStyleMap[minStdsAway]} ${numMs(x)}} ${
+        minStdsAway !== 1 ? '±' + minStdsAway + 'std' : ''
+      }`
+    })
+
+    console.log(
+      table(
+        [
+          ['min', minStyle],
+          ['max', maxStyle],
+          ['mean', numMs(mean)],
+          ['stddev', numMs(std)],
+          ["Otsu's threshold", numMs(otsuThreshold)]
+        ],
         secondTableConfig
       )
     )
