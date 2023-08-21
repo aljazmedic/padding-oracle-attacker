@@ -10,7 +10,13 @@ const DEFAULT_KEY = Buffer.from('00112233445566778899112233445566', 'hex')
 const DEFAULT_ENCODING = 'hex'
 
 function run(args) {
-  const { port = 2020, loggingEnabled, encryptionAlgo = 'aes-128-cbc', key = DEFAULT_KEY } = args || {}
+  const {
+    port = 2020,
+    loggingEnabled,
+    encryptionAlgo = 'aes-128-cbc',
+    key = DEFAULT_KEY,
+    afterProcessingTime = 0
+  } = args || {}
   const blockSize = +args.blockSize || 16
 
   const app = express()
@@ -37,15 +43,22 @@ function run(args) {
       return
     }
     const fullBuffer = Buffer.from(ciphertext, DEFAULT_ENCODING)
-    const ivBuffer = fullBuffer.slice(0, blockSize)
-    const ciphertextBuffer = fullBuffer.slice(blockSize)
+    const ivBuffer = fullBuffer.subarray(0, blockSize)
+    const ciphertextBuffer = fullBuffer.subarray(blockSize)
     const reqDetails = [req.method, req.headers, req.body]
     try {
-      const decrypted = decrypt(encryptionAlgo, ciphertextBuffer, key, ivBuffer)
+      const decrypted = decrypt(
+        encryptionAlgo,
+        ciphertextBuffer,
+        key,
+        ivBuffer
+      )
       const txt = decrypted.toString('utf8')
       if (loggingEnabled) console.log(200, ciphertext, txt, ...reqDetails)
-      if (includeHeaders) res.json({ headers: req.headers, decrypted: txt })
-      else res.send('OK')
+      setTimeout(() => {
+        if (includeHeaders) res.json({ headers: req.headers, decrypted: txt })
+        else res.send('OK')
+      }, afterProcessingTime)
     } catch (err) {
       if (loggingEnabled) console.log(400, ciphertext, err.message, ...reqDetails)
       res.status(400).send(err.message)
@@ -60,7 +73,9 @@ function run(args) {
 module.exports = run
 
 if (require.main === module) {
-  run({ loggingEnabled: true }).then(({ port }) => {
-    console.log(`listening on http://localhost:${port}/`)
-  }).catch(console.error)
+  run({ loggingEnabled: true, afterProcessingTime: 1000 })
+    .then(({ port }) => {
+      console.log(`listening on http://localhost:${port}/`)
+    })
+    .catch(console.error)
 }
